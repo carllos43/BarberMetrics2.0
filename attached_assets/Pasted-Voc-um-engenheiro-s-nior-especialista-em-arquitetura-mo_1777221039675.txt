@@ -1,0 +1,110 @@
+Você é um engenheiro sênior especialista em arquitetura moderna com Supabase.
+
+Sua tarefa é migrar completamente este projeto para uma arquitetura SEM BACKEND intermediário.
+
+---
+
+## 🎯 OBJETIVO PRINCIPAL
+
+Eliminar completamente qualquer backend existente (Express, Replit ou Node) e migrar o sistema para rodar com:
+
+Frontend → Supabase diretamente
+
+---
+
+## 🔑 CONFIGURAÇÃO DO SUPABASE (JÁ DEFINIDA)
+
+Use obrigatoriamente este projeto:
+
+- Project URL: https://fjuwphurhyoytclrmdqy.supabase.co
+- Database URL: postgresql://postgres.fjuwphurhyoytclrmdqy:BarberMetrics2026@aws-1-us-east-2.pooler.supabase.com:6543/postgres
+- Publishable Key: sb_publishable_Fq9N5O91A_7h1ITbbMl-GA_x25HROk5
+
+Conecte automaticamente o sistema a este Supabase.
+
+---
+
+## 🚫 O QUE DEVE SER REMOVIDO
+
+- Todo código de servidor Express
+- Qualquer pasta de backend/API
+- Rotas /api/*
+- Integrações com Replit como backend
+- Qualquer lógica server-side desnecessária
+
+---
+
+## ✅ O QUE DEVE SER IMPLEMENTADO
+
+### 1. SUPABASE COMO BACKEND TOTAL
+- Conectar ao banco fornecido
+- Migrar automaticamente todas as tabelas existentes
+- Recriar schemas, relações e constraints
+- Garantir integridade dos dados
+
+---
+
+### 2. AUTENTICAÇÃO
+- Implementar Supabase Auth
+- Substituir sistema atual
+- Garantir sessão persistente
+
+---
+
+### 3. ACESSO A DADOS
+- Substituir TODAS as chamadas de API (fetch/axios)
+- Usar exclusivamente o cliente do Supabase
+- Implementar CRUD completo direto no Supabase
+
+---
+
+### 4. SEGURANÇA (OBRIGATÓRIO)
+- Ativar Row Level Security (RLS) em todas as tabelas
+- Criar policies baseadas em auth.uid()
+- Garantir isolamento de dados por usuário
+
+---
+
+### 5. FRONTEND
+- Adaptar frontend existente para funcionar sem backend
+- Conectar diretamente ao Supabase
+- Remover qualquer dependência de API própria
+
+---
+
+### 6. ESTRUTURA FINAL
+- Preparar projeto para deploy na Vercel
+- Configurar variáveis de ambiente automaticamente
+- Garantir build funcional
+
+---
+
+## ⚠️ REGRAS CRÍTICAS
+
+- NÃO criar backend novo
+- NÃO manter Express
+- NÃO usar Replit como servidor
+- NÃO deixar nenhuma rota /api ativa
+- Todo o sistema deve depender exclusivamente do Supabase
+
+---
+
+## 🧠 INTELIGÊNCIA ESPERADA
+
+- Detectar automaticamente ORM (Drizzle ou outro)
+- Converter schemas para SQL compatível com Supabase
+- Refatorar toda comunicação de dados
+- Preservar funcionalidades existentes
+
+---
+
+## 📤 RESULTADO FINAL ESPERADO
+
+- Sistema funcionando sem backend intermediário
+- Banco totalmente operando no Supabase
+- Frontend conectado diretamente ao Supabase
+- Projeto pronto para deploy na Vercel
+
+---
+
+Execute toda a migração automaticamente

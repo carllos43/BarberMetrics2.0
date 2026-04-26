@@ -4,30 +4,55 @@
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
 
-The active product is **BarberMetrics 2.0** — a premium iPhone-style cash-book and performance app for solo barbers (Brazilian Portuguese UI). Frontend is an iOS-styled React SPA with bottom tab navigation, glass chrome, bottom sheets, spring animations, and a tabular-nums money/timer display. Backend is the shared Express API server using Drizzle ORM against a Supabase Postgres database (connected via the Transaction Pooler in `SUPABASE_DATABASE_URL`). The DB layer in `lib/db/src/index.ts` auto-detects Supabase and switches to the `postgres-js` driver with `prepare: false` so it works correctly with pgbouncer's transaction pooling.
+The active product is **BarberMetrics 2.0** — a premium iPhone-style cash-book and performance app for solo barbers (Brazilian Portuguese UI). It is now a **fully serverless React SPA** that talks **directly to Supabase** (auth + Postgres with Row Level Security). There is no Express backend, no `/api/*` routes, no Drizzle/ORM in the project anymore.
+
+## Architecture
+
+- **Frontend**: React + Vite (iOS dark mode, amber accents) — `artifacts/barbermetrics`
+- **Backend**: Supabase
+  - **Auth**: Supabase Auth (email/password)
+  - **Database**: Supabase Postgres, accessed only from the browser via `@supabase/supabase-js` and the publishable (anon) key
+  - **Security**: Row Level Security on every table, all policies keyed off `auth.uid()`
+  - **Provisioning**: schema lives in `supabase/schema.sql` and must be applied via the Supabase Dashboard SQL Editor
+- **Deploy target**: Vercel-ready (static SPA + Supabase). The artifact's static-build mode also runs on Replit Deployments.
 
 ## Artifacts
 
-- `artifacts/barbermetrics` — React + Vite frontend (iOS dark mode, amber accents)
-- `artifacts/api-server` — Express API serving services, appointments, settings, and summary endpoints
+- `artifacts/barbermetrics` — React + Vite SPA (root path `/`)
 - `artifacts/mockup-sandbox` — design canvas (unused for this product)
 
-## Domain model
+## Domain model (Supabase tables)
 
-- `services` — barber's service catalog (name, price, durationMinutes, isActive)
-- `appointments` — every completed haircut/service (serviceId nullable for "avulso", priced, started/ended/duration, optional note)
-- `settings` — single-row table (id=1) with barbershopName, dailyGoal (BRL), workStartTime/EndTime, workDays, currency
+All tables include `user_id uuid references auth.users(id) on delete cascade` and have RLS policies that restrict every operation to `user_id = auth.uid()`.
 
-## API surface (under `/api`)
+- `services` — barber's service catalog (name, price, duration_minutes, is_active, created_at)
+- `appointments` — every completed service (service_id nullable for "avulso", price, started_at, ended_at, duration_seconds, note)
+- `settings` — one row per user (PK = user_id) with barbershop_name, daily_goal, currency, work_start_time/end_time, work_days, theme. A trigger on `auth.users` auto-creates a row on signup.
 
-- `GET/POST /services`, `PATCH/DELETE /services/:id`
-- `GET/POST /appointments` (date / startDate / endDate / serviceId filters), `PATCH/DELETE /appointments/:id`
-- `GET /summary/daily?date=YYYY-MM-DD`
-- `GET /summary/range?startDate=&endDate=`
-- `GET /summary/insights?date=YYYY-MM-DD` — predictive insights computed in SQL/JS (no LLM)
-- `GET/PATCH /settings`
+## Frontend data layer
 
-OpenAPI spec lives in `lib/api-spec/openapi.yaml`. Re-run `pnpm --filter @workspace/api-spec run codegen` after any spec change to refresh the React Query hooks (`@workspace/api-client-react`) and Zod schemas (`@workspace/api-zod`).
+`artifacts/barbermetrics/src/lib/`:
+
+- `supabase.ts` — Supabase client (uses `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY`)
+- `auth.tsx` — `<AuthProvider>` + `useAuth()` (session, signIn, signUp, signOut)
+- `data/services.ts`, `data/appointments.ts`, `data/settings.ts` — React Query hooks that wrap Supabase queries (`useListServices`, `useCreateService`, `useListAppointments`, `useCreateAppointment`, `useGetSettings`, `useUpdateSettings`, …)
+- `data/summary.ts` — `useGetDailySummary`, `useGetRangeSummary`, `useGetInsights` — these used to be backend endpoints; they now fetch raw appointments/settings from Supabase and aggregate client-side
+- `data/dates.ts`, `data/mappers.ts`, `data/types.ts` — helpers and type definitions
+
+`App.tsx` wraps `<AppLayout>` in an auth gate: when unauthenticated, the user lands on `pages/Login.tsx` (email/password sign-in or sign-up).
+
+## Required environment variables
+
+Public (frontend, set as env vars in `shared`):
+
+- `VITE_SUPABASE_URL` — Supabase project URL
+- `VITE_SUPABASE_PUBLISHABLE_KEY` — Supabase publishable (anon) key
+
+No backend secrets are needed in production.
+
+## Schema migrations
+
+To create / refresh the schema in Supabase, copy the contents of `supabase/schema.sql` into the Supabase Dashboard SQL Editor and run it. The script is idempotent (drops and recreates tables, policies, and the new-user trigger).
 
 ## Stack
 
@@ -35,18 +60,20 @@ OpenAPI spec lives in `lib/api-spec/openapi.yaml`. Re-run `pnpm --filter @worksp
 - **Node.js version**: 24
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
-- **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
-- **Validation**: Zod (`zod/v4`), `drizzle-zod`
-- **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+- **Frontend**: React 19, Vite 7, Tailwind v4, framer-motion, recharts, sonner, zustand, date-fns
+- **Data**: `@supabase/supabase-js` + `@tanstack/react-query`
 
 ## Key Commands
 
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- `pnpm --filter @workspace/api-server run dev` — run API server locally
+- `pnpm install` — install workspace dependencies
+- `pnpm --filter @workspace/barbermetrics run typecheck` — typecheck the SPA
+- `pnpm --filter @workspace/barbermetrics run dev` — run the SPA locally
+- `pnpm --filter @workspace/barbermetrics run build` — production build (static)
 
-See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+## Deploying to Vercel
+
+1. Connect this repo to Vercel.
+2. Set the build command to `pnpm --filter @workspace/barbermetrics run build`.
+3. Set the output directory to `artifacts/barbermetrics/dist/public`.
+4. Add the env vars `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
+5. Deploy.

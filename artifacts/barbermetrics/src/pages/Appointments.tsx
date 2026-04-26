@@ -1,4 +1,4 @@
-import { useListAppointments, useDeleteAppointment, useUpdateAppointment, useListServices } from "@workspace/api-client-react";
+import { useListAppointments, useDeleteAppointment, useUpdateAppointment, useListServices } from "@/lib/data";
 import { useState, useEffect } from "react";
 import { format, addDays, subDays, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -154,8 +154,6 @@ function AppointmentCard({ appointment, index }: { appointment: any, index: numb
       navigator.vibrate?.([10, 30, 10]);
       await deleteApp({ id: appointment.id });
       toast.success("Atendimento excluído");
-      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/daily-summary"] });
       setDeleteConfirmOpen(false);
     } catch (e) {
       toast.error("Erro ao excluir");
@@ -273,8 +271,6 @@ function EditAppointmentSheet({ appointment, open, onOpenChange }: { appointment
       });
       
       toast.success("Atendimento atualizado");
-      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/daily-summary"] });
       onOpenChange(false);
     } catch (err) {
       toast.error("Erro ao atualizar");

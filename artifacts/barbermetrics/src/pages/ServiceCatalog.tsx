@@ -1,4 +1,4 @@
-import { useListServices, useCreateService, useUpdateService, useDeleteService } from "@workspace/api-client-react";
+import { useListServices, useCreateService, useUpdateService, useDeleteService } from "@/lib/data";
 import { useState } from "react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Plus, ChevronLeft, Trash, Edit } from "lucide-react";
@@ -80,7 +80,6 @@ function ServiceRow({ service, onEdit }: { service: any, onEdit: () => void }) {
       navigator.vibrate?.([10, 30, 10]);
       await deleteService({ id: service.id });
       toast.success("Serviço excluído");
-      queryClient.invalidateQueries({ queryKey: ["/api/services"] });
     } catch (e) {
       toast.error("Erro ao excluir");
     }
@@ -149,7 +148,6 @@ function ServiceFormSheet({ open, onOpenChange, service }: { open: boolean, onOp
         await createService({ data: { name, price } });
         toast.success("Serviço criado");
       }
-      queryClient.invalidateQueries({ queryKey: ["/api/services"] });
       onOpenChange(false);
     } catch (e) {
       toast.error("Erro ao salvar");

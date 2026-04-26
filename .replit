@@ -33,3 +33,9 @@ externalPort = 3000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+VITE_SUPABASE_URL = "https://fjuwphurhyoytclrmdqy.supabase.co"
+VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Fq9N5O91A_7h1ITbbMl-GA_x25HROk5"

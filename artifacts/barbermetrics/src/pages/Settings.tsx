@@ -1,15 +1,17 @@
 import { BottomSheet } from "@/components/ui/bottom-sheet";
-import { useGetSettings, useUpdateSettings } from "@workspace/api-client-react";
+import { useGetSettings, useUpdateSettings } from "@/lib/data";
 import { useState, useEffect } from "react";
-import { ChevronRight, LogOut, Trash2 } from "lucide-react";
+import { ChevronRight, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { ServiceCatalogSheet } from "./ServiceCatalog";
+import { useAuth } from "@/lib/auth";
 
 export function SettingsSheet({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
   const { data: settings } = useGetSettings();
   const { mutateAsync: updateSettings } = useUpdateSettings();
   const queryClient = useQueryClient();
+  const { signOut, user } = useAuth();
 
   const [name, setName] = useState("");
   const [goalStr, setGoalStr] = useState("");
@@ -31,8 +33,6 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean, onOpenCha
           dailyGoal: goal
         }
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/daily-summary"] });
       toast.success("Ajustes salvos");
       onOpenChange(false);
     } catch (e) {
@@ -111,13 +111,21 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean, onOpenCha
 
             {/* Conta */}
             <div className="space-y-2 pt-4">
-              <button className="w-full bg-[#2C2C2E] px-4 py-4 rounded-3xl flex items-center justify-center gap-2 text-gray-300 font-medium mb-3">
+              {user?.email && (
+                <p className="text-xs text-gray-500 text-center mb-3">
+                  Conectado como <span className="text-gray-300">{user.email}</span>
+                </p>
+              )}
+              <button
+                onClick={async () => {
+                  await signOut();
+                  onOpenChange(false);
+                  toast.success("Sessão encerrada");
+                }}
+                className="w-full bg-[#2C2C2E] px-4 py-4 rounded-3xl flex items-center justify-center gap-2 text-[#FF3B30] font-medium"
+              >
                 <LogOut size={18} />
                 Sair da conta
-              </button>
-              <button className="w-full bg-[#2C2C2E] px-4 py-4 rounded-3xl flex items-center justify-center gap-2 text-[#FF3B30] font-medium">
-                <Trash2 size={18} />
-                Excluir conta
               </button>
             </div>
           </div>

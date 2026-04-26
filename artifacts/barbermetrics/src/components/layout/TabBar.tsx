@@ -7,11 +7,11 @@ export function TabBar() {
   const { currentTab, setCurrentTab } = useAppStore();
 
   const tabs = [
-    { id: "home", icon: Home, label: "Início" },
+    { id: "home", icon: Home, label: "Início", isCenter: false },
     { id: "timer", icon: Timer, label: "Cronômetro", isCenter: true },
-    { id: "appointments", icon: Calendar, label: "Atendimentos" },
-    { id: "analysis", icon: BarChart2, label: "Análise" },
-    { id: "reports", icon: FileText, label: "Relatórios" },
+    { id: "appointments", icon: Calendar, label: "Atendimentos", isCenter: false },
+    { id: "analysis", icon: BarChart2, label: "Análise", isCenter: false },
+    { id: "reports", icon: FileText, label: "Relatórios", isCenter: false },
   ] as const;
 
   return (

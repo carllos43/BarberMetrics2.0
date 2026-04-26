@@ -1,4 +1,4 @@
-import { useGetRangeSummary, useListAppointments, useGetSettings } from "@workspace/api-client-react";
+import { useGetRangeSummary, useListAppointments, useGetSettings } from "@/lib/data";
 import { format, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { formatCurrency, formatDuration } from "@/lib/utils";

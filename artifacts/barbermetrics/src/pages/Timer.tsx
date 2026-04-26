@@ -5,7 +5,7 @@ import { Play, Square, Check } from "lucide-react";
 import { useEffect } from "react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { useState } from "react";
-import { useListServices, useCreateAppointment } from "@workspace/api-client-react";
+import { useListServices, useCreateAppointment } from "@/lib/data";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -163,8 +163,6 @@ function SaveAppointmentSheet({ open, onOpenChange, durationSeconds, startedAt }
       });
       
       toast.success("Atendimento salvo");
-      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/daily-summary"] });
       
       resetTimer();
       onOpenChange(false);

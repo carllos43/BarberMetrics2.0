@@ -1,4 +1,4 @@
-import { useGetRangeSummary, useGetInsights } from "@workspace/api-client-react";
+import { useGetRangeSummary, useGetInsights } from "@/lib/data";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { formatCurrency, formatTime } from "@/lib/utils";
