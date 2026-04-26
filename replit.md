@@ -4,7 +4,7 @@
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
 
-The active product is **BarberMetrics 2.0** — a premium iPhone-style cash-book and performance app for solo barbers (Brazilian Portuguese UI). Frontend is an iOS-styled React SPA with bottom tab navigation, glass chrome, bottom sheets, spring animations, and a tabular-nums money/timer display. Backend is the shared Express API server with Postgres + Drizzle.
+The active product is **BarberMetrics 2.0** — a premium iPhone-style cash-book and performance app for solo barbers (Brazilian Portuguese UI). Frontend is an iOS-styled React SPA with bottom tab navigation, glass chrome, bottom sheets, spring animations, and a tabular-nums money/timer display. Backend is the shared Express API server using Drizzle ORM against a Supabase Postgres database (connected via the Transaction Pooler in `SUPABASE_DATABASE_URL`). The DB layer in `lib/db/src/index.ts` auto-detects Supabase and switches to the `postgres-js` driver with `prepare: false` so it works correctly with pgbouncer's transaction pooling.
 
 ## Artifacts
 
