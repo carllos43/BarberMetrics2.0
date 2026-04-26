@@ -84,27 +84,27 @@ export function Home() {
         </div>
       </motion.div>
 
-      {/* Stat Cards - Horizontal Scroll */}
-      <div className="-mx-4 px-4 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar">
-        <div className="flex gap-4 w-max">
-          {[
-            { label: "Cortes hoje", value: summary?.totalAppointments || 0 },
-            { label: "Ticket médio", value: formatCurrency(summary?.avgTicket || 0) },
-            { label: "Tempo trab.", value: formatTime(summary?.workedSeconds || 0) },
-            { label: "Ganho/hora", value: formatCurrency(summary?.revenuePerHour || 0) },
-          ].map((stat, i) => (
-            <motion.div 
-              key={stat.label}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.15 + i * 0.05 }}
-              className="bg-[#1C1C1E] p-4 rounded-3xl min-w-[140px] snap-center shrink-0 shadow-lg shadow-black/40"
-            >
-              <p className="text-[10px] uppercase font-semibold tracking-wider text-gray-500 mb-2">{stat.label}</p>
-              <p className="text-xl font-bold text-white tabular-nums">{stat.value}</p>
-            </motion.div>
-          ))}
-        </div>
+      {/* Stat Cards - 2x2 Grid */}
+      <div className="grid grid-cols-2 gap-3">
+        {[
+          { label: "Cortes hoje", value: String(summary?.totalAppointments || 0) },
+          { label: "Ticket médio", value: formatCurrency(summary?.avgTicket || 0) },
+          { label: "Tempo trab.", value: formatTime(summary?.workedSeconds || 0) },
+          { label: "Ganho/hora", value: formatCurrency(summary?.revenuePerHour || 0) },
+        ].map((stat, i) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 + i * 0.05 }}
+            className="bg-[#1C1C1E] p-4 rounded-3xl shadow-lg shadow-black/40 min-w-0"
+          >
+            <p className="text-[10px] uppercase font-semibold tracking-wider text-gray-500 mb-2 truncate">
+              {stat.label}
+            </p>
+            <p className="text-lg font-bold text-white tabular-nums truncate">{stat.value}</p>
+          </motion.div>
+        ))}
       </div>
 
       {/* Mini Bar Chart */}
