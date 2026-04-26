@@ -4,7 +4,7 @@ import { format, addDays, subDays, isSameDay, startOfMonth, endOfMonth, eachDayO
 import { ptBR } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency } from "@/lib/utils";
-import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Modal } from "@/components/ui/modal";
 import { Calendar as CalendarIcon, Clock, Trash, Edit, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -73,7 +73,7 @@ export function Appointments() {
       </div>
 
       {/* Calendar Bottom Sheet */}
-      <BottomSheet open={calendarOpen} onOpenChange={setCalendarOpen}>
+      <Modal open={calendarOpen} onOpenChange={setCalendarOpen}>
         <div className="pb-8 pt-4">
           <MonthPicker 
             selectedDate={selectedDate} 
@@ -83,7 +83,7 @@ export function Appointments() {
             }} 
           />
         </div>
-      </BottomSheet>
+      </Modal>
     </div>
   );
 }
@@ -211,7 +211,7 @@ function AppointmentCard({ appointment, index }: { appointment: any, index: numb
         </div>
       </motion.div>
 
-      <BottomSheet open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+      <Modal open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <div className="py-6 space-y-6 text-center">
           <h3 className="text-xl font-bold text-white">Excluir Atendimento?</h3>
           <p className="text-gray-400">Esta ação não pode ser desfeita e afetará as métricas do dia.</p>
@@ -230,7 +230,7 @@ function AppointmentCard({ appointment, index }: { appointment: any, index: numb
             </button>
           </div>
         </div>
-      </BottomSheet>
+      </Modal>
 
       <EditAppointmentSheet appointment={appointment} open={editOpen} onOpenChange={setEditOpen} />
     </>
@@ -296,7 +296,7 @@ function EditAppointmentSheet({ appointment, open, onOpenChange }: { appointment
   };
 
   return (
-    <BottomSheet open={open} onOpenChange={onOpenChange}>
+    <Modal open={open} onOpenChange={onOpenChange}>
       <div className="space-y-6 pt-2 pb-6">
         <h2 className="text-xl font-bold text-center text-white">Editar Atendimento</h2>
         
@@ -370,6 +370,6 @@ function EditAppointmentSheet({ appointment, open, onOpenChange }: { appointment
           Salvar Alterações
         </button>
       </div>
-    </BottomSheet>
+    </Modal>
   );
 }

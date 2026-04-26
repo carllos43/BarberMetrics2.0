@@ -1,6 +1,6 @@
 import { useListServices, useCreateService, useUpdateService, useDeleteService } from "@/lib/data";
 import { useState } from "react";
-import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Modal } from "@/components/ui/modal";
 import { Plus, ChevronLeft, Trash, Edit } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
@@ -13,7 +13,7 @@ export function ServiceCatalogSheet({ open, onOpenChange }: { open: boolean, onO
   const [isCreating, setIsCreating] = useState(false);
 
   return (
-    <BottomSheet open={open} onOpenChange={onOpenChange} className="h-[96vh] bg-black">
+    <Modal open={open} onOpenChange={onOpenChange} className="h-[96vh] bg-black">
       <div className="flex flex-col h-full bg-black">
         <div className="flex items-center justify-between mb-6 pt-2 pl-2 pr-4">
           <button onClick={() => onOpenChange(false)} className="text-amber-500 flex items-center">
@@ -66,7 +66,7 @@ export function ServiceCatalogSheet({ open, onOpenChange }: { open: boolean, onO
         }}
         service={editingService}
       />
-    </BottomSheet>
+    </Modal>
   );
 }
 
@@ -160,7 +160,7 @@ function ServiceFormSheet({ open, onOpenChange, service }: { open: boolean, onOp
   };
 
   return (
-    <BottomSheet open={open} onOpenChange={onOpenChange}>
+    <Modal open={open} onOpenChange={onOpenChange}>
       <div className="space-y-6 pt-2 pb-6">
         <h2 className="text-xl font-bold text-center text-white">
           {service ? "Editar Serviço" : "Novo Serviço"}
@@ -198,6 +198,6 @@ function ServiceFormSheet({ open, onOpenChange, service }: { open: boolean, onOp
           Salvar
         </button>
       </div>
-    </BottomSheet>
+    </Modal>
   );
 }

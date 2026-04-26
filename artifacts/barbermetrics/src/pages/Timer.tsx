@@ -3,7 +3,7 @@ import { formatDuration } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Play, Square, Check } from "lucide-react";
 import { useEffect } from "react";
-import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Modal } from "@/components/ui/modal";
 import { useState } from "react";
 import { useListServices, useCreateAppointment } from "@/lib/data";
 import { useQueryClient } from "@tanstack/react-query";
@@ -190,7 +190,7 @@ function SaveAppointmentSheet({ open, onOpenChange, durationSeconds, startedAt }
   };
 
   return (
-    <BottomSheet open={open} onOpenChange={onOpenChange}>
+    <Modal open={open} onOpenChange={onOpenChange}>
       <div className="space-y-6 pt-2">
         <h2 className="text-xl font-bold text-center text-white">Salvar Atendimento</h2>
         
@@ -264,6 +264,6 @@ function SaveAppointmentSheet({ open, onOpenChange, durationSeconds, startedAt }
           Salvar atendimento
         </button>
       </div>
-    </BottomSheet>
+    </Modal>
   );
 }

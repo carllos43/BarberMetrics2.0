@@ -1,4 +1,4 @@
-import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { Modal } from "@/components/ui/modal";
 import { useGetSettings, useUpdateSettings } from "@/lib/data";
 import { useState, useEffect } from "react";
 import { ChevronRight, LogOut } from "lucide-react";
@@ -47,7 +47,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean, onOpenCha
 
   return (
     <>
-      <BottomSheet open={open} onOpenChange={onOpenChange} className="h-[90vh]">
+      <Modal open={open} onOpenChange={onOpenChange} className="h-[90vh]">
         <div className="flex flex-col h-full">
           <h2 className="text-2xl font-bold text-white mb-6 pl-2">Ajustes</h2>
 
@@ -139,7 +139,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean, onOpenCha
             </button>
           </div>
         </div>
-      </BottomSheet>
+      </Modal>
 
       <ServiceCatalogSheet open={catalogOpen} onOpenChange={setCatalogOpen} />
     </>
