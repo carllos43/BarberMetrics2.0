@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../supabase";
 import { mapService } from "./mappers";
+import { getUserId } from "./auth-helpers";
 import type { CreateServiceInput, Service, UpdateServiceInput } from "./types";
 
 const KEY = ["services"] as const;
@@ -17,6 +18,7 @@ export function useListServices() {
       if (error) throw error;
       return (data ?? []).map(mapService);
     },
+    staleTime: 60_000,
   });
 }
 
@@ -24,9 +26,7 @@ export function useCreateService() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ data }: { data: CreateServiceInput }) => {
-      const { data: userRes } = await supabase.auth.getUser();
-      const userId = userRes.user?.id;
-      if (!userId) throw new Error("Not signed in");
+      const userId = await getUserId();
       const { data: row, error } = await supabase
         .from("services")
         .insert({
@@ -70,7 +70,6 @@ export function useDeleteService() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id }: { id: string }) => {
-      // Soft delete to preserve historical appointments
       const { error } = await supabase
         .from("services")
         .update({ is_active: false })

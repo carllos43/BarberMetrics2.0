@@ -1,14 +1,13 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { supabase } from "../supabase";
 import { mapSettings } from "./mappers";
+import { getUserId } from "./auth-helpers";
 import type { Settings, UpdateSettingsInput } from "./types";
 
-const KEY = ["settings"] as const;
+export const SETTINGS_KEY = ["settings"] as const;
 
 async function loadOrCreate(): Promise<Settings> {
-  const { data: userRes } = await supabase.auth.getUser();
-  const userId = userRes.user?.id;
-  if (!userId) throw new Error("Not signed in");
+  const userId = await getUserId();
 
   const { data, error } = await supabase
     .from("settings")
@@ -30,8 +29,17 @@ async function loadOrCreate(): Promise<Settings> {
 
 export function useGetSettings() {
   return useQuery({
-    queryKey: KEY,
+    queryKey: SETTINGS_KEY,
     queryFn: loadOrCreate,
+    staleTime: 5 * 60_000,
+  });
+}
+
+export async function ensureSettings(qc: QueryClient): Promise<Settings> {
+  return qc.ensureQueryData({
+    queryKey: SETTINGS_KEY,
+    queryFn: loadOrCreate,
+    staleTime: 5 * 60_000,
   });
 }
 
@@ -39,9 +47,7 @@ export function useUpdateSettings() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ data }: { data: UpdateSettingsInput }) => {
-      const { data: userRes } = await supabase.auth.getUser();
-      const userId = userRes.user?.id;
-      if (!userId) throw new Error("Not signed in");
+      const userId = await getUserId();
 
       const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
       if (data.barbershopName !== undefined) update.barbershop_name = data.barbershopName;
@@ -62,8 +68,9 @@ export function useUpdateSettings() {
       return mapSettings(row);
     },
     onSuccess: (data) => {
-      qc.setQueryData(KEY, data);
+      qc.setQueryData(SETTINGS_KEY, data);
       qc.invalidateQueries({ queryKey: ["summary"] });
+      qc.invalidateQueries({ queryKey: ["insights"] });
     },
   });
 }

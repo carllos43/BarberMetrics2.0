@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../supabase";
 import { mapAppointment } from "./mappers";
 import { dayEnd, dayStart } from "./dates";
+import { getUserId } from "./auth-helpers";
 import type { Appointment, CreateAppointmentInput, UpdateAppointmentInput } from "./types";
 
 interface ListParams {
@@ -34,6 +35,7 @@ export function useListAppointments(params: ListParams) {
       if (error) throw error;
       return (data ?? []).map(mapAppointment);
     },
+    staleTime: 30_000,
   });
 }
 
@@ -47,9 +49,7 @@ export function useCreateAppointment() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ data }: { data: CreateAppointmentInput }) => {
-      const { data: userRes } = await supabase.auth.getUser();
-      const userId = userRes.user?.id;
-      if (!userId) throw new Error("Not signed in");
+      const userId = await getUserId();
 
       let duration = data.durationSeconds;
       if (duration == null && data.endedAt) {

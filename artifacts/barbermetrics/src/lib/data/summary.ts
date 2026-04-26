@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../supabase";
-import { mapAppointment, mapSettings } from "./mappers";
+import { mapAppointment } from "./mappers";
 import { addDays, dayEnd, dayStart } from "./dates";
+import { ensureSettings } from "./settings";
 import type { Appointment, DailySummary, Insight, RangeSummary, Settings } from "./types";
 
 function round2(n: number) {
@@ -9,26 +10,6 @@ function round2(n: number) {
 }
 function brl(n: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(n);
-}
-
-async function fetchSettings(): Promise<Settings> {
-  const { data: userRes } = await supabase.auth.getUser();
-  const userId = userRes.user?.id;
-  if (!userId) throw new Error("Not signed in");
-  const { data, error } = await supabase
-    .from("settings")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (error) throw error;
-  if (data) return mapSettings(data);
-  const { data: ins, error: insErr } = await supabase
-    .from("settings")
-    .insert({ user_id: userId })
-    .select()
-    .single();
-  if (insErr) throw insErr;
-  return mapSettings(ins);
 }
 
 async function fetchAppointmentsRange(start: string, end: string): Promise<Appointment[]> {
@@ -77,11 +58,12 @@ function idleSecondsFor(rows: Appointment[], settings: Settings): number {
 }
 
 export function useGetDailySummary(params: { date: string }) {
+  const qc = useQueryClient();
   return useQuery({
     queryKey: ["summary", "daily", params.date],
     queryFn: async (): Promise<DailySummary> => {
       const [settings, rows] = await Promise.all([
-        fetchSettings(),
+        ensureSettings(qc),
         fetchAppointmentsRange(params.date, params.date),
       ]);
       const agg = aggregateDay(rows);
@@ -101,15 +83,17 @@ export function useGetDailySummary(params: { date: string }) {
         revenuePerHour: round2(revenuePerHour),
       };
     },
+    staleTime: 30_000,
   });
 }
 
 export function useGetRangeSummary(params: { startDate: string; endDate: string }) {
+  const qc = useQueryClient();
   return useQuery({
     queryKey: ["summary", "range", params.startDate, params.endDate],
     queryFn: async (): Promise<RangeSummary> => {
       const [settings, allRows] = await Promise.all([
-        fetchSettings(),
+        ensureSettings(qc),
         fetchAppointmentsRange(params.startDate, params.endDate),
       ]);
 
@@ -151,10 +135,12 @@ export function useGetRangeSummary(params: { startDate: string; endDate: string 
         days,
       };
     },
+    staleTime: 30_000,
   });
 }
 
 export function useGetInsights(params: { date: string }) {
+  const qc = useQueryClient();
   return useQuery({
     queryKey: ["insights", params.date],
     queryFn: async (): Promise<Insight[]> => {
@@ -162,7 +148,7 @@ export function useGetInsights(params: { date: string }) {
       const sevenAgo = addDays(today, -6);
       const fourteenAgo = addDays(today, -13);
       const [settings, last7, prev7] = await Promise.all([
-        fetchSettings(),
+        ensureSettings(qc),
         fetchAppointmentsRange(sevenAgo, today),
         fetchAppointmentsRange(fourteenAgo, addDays(today, -7)),
       ]);
@@ -293,5 +279,6 @@ export function useGetInsights(params: { date: string }) {
 
       return insights;
     },
+    staleTime: 60_000,
   });
 }
