@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "BarberMetrics 2.0"
+version = "1.0.0"
+id = "artifacts/barbermetrics"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20838
+
+[services.development]
+run = "pnpm --filter @workspace/barbermetrics run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/barbermetrics", "run", "build" ]
+publicDir = "artifacts/barbermetrics/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20838"
+BASE_PATH = "/"

@@ -1,0 +1,147 @@
+Atue como Arquiteto de Software, Especialista em UX/UI (Design System Apple/iOS) e Engenheiro Frontend Sênior. Quero construir o BarberMetrics 2.0, um SaaS PWA de altíssima performance para barbeiros autônomos.
+
+🎨 IDENTIDADE VISUAL E UX (O ESTILO iPHONE PREMIUM - OBRIGATÓRIO):
+A interface NÃO pode parecer um site web comum. Ela DEVE parecer um aplicativo nativo do iOS de alto padrão. Aplique as seguintes regras estritas de design usando Tailwind CSS:
+
+Cores e Fundo: Dark Mode nativo iOS (fundos em #000000 ou #1C1C1E). Acentos em Dourado/Âmbar (#D4A853) para botões primários, indicadores de progresso e destaques. Estados de erro em Vermelho iOS (#FF3B30), nunca laranja genérico. Estados de sucesso em Verde iOS (#34C759).
+
+Tipografia: Use fontes no padrão San Francisco (font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif). Títulos em negrito pesado (Bold) e tracking ajustado (tracking-tight). Textos secundários em cinza opaco (text-gray-400 ou #9CA3AF). Valores financeiros em fonte monoespaçada tabular para alinhamento de decimais.
+
+Glassmorphism (Efeito Vidro): A Bottom Navigation Bar (Menu Inferior) e o Header DEVEM ser translúcidos com efeito de desfoque (backdrop-blur-xl, bg-black/60 ou bg-[#1C1C1E]/80). Header com borda sutil inferior (border-b border-white/10). Respeitar safe areas (pt-safe, pb-safe para notch e home indicator).
+
+Modais Nativos (Bottom Sheets): NUNCA use pop-ups quadrados no meio da tela. Tudo que abrir (Avisos, Formulário do Cronômetro, Configurações, Filtros) deve ser um Bottom Sheet: card com bordas rounded-t-3xl que desliza de baixo para cima, igual no iPhone. Deve ter handle indicator no topo (w-10 h-1 bg-gray-600 rounded-full mx-auto mt-2), backdrop escurecido (bg-black/60) com toque fora para fechar, e animação de entrada translateY(100%) para translateY(0) com spring do Framer Motion.
+
+Cards e Formas: Todos os cards devem ter bordas altamente arredondadas (rounded-3xl ou rounded-2xl), sem bordas duras, com bg-[#2C2C2E] para elevação sutil. Sombras muito suaves e translúcidas (shadow-lg shadow-black/20).
+
+Animações (Framer Motion): Transições fluidas com efeito Spring (stiffness: 400, damping: 25) ao clicar em botões (whileTap: scale 0.96) e alternar abas. AnimatePresence com slide horizontal suave para transições de tela. Listas com staggerChildren para entrada em cascata de cards.
+
+Interações Táteis: Implementar haptic feedback via navigator.vibrate(10) ao iniciar/pausar cronômetro, salvar atendimento e atingir meta diária. Pull-to-refresh nativo nas listas via gesture.
+
+🛠️ ARQUITETURA E STACK (100% SERVERLESS / BAAS):
+
+Frontend: React 18, Vite 5, TypeScript, Tailwind CSS 3.4, Zustand 4 com persist middleware, Framer Motion, vite-plugin-pwa. Hospedagem na Vercel.
+
+Backend (REGRA DE OURO): 100% SUPABASE. NÃO crie servidores Node.js ou Express. O Frontend deve usar o supabase-js diretamente. Conexão via Pooler (porta 6543 para transações, porta 5432 para RPCs e Realtime).
+
+Lógica de Servidor: Cálculos complexos no Supabase (Postgres RPCs, Triggers). Row Level Security (RLS) ativado em TODAS as tabelas.
+
+PDF: jspdf + jspdf-autotable no client-side. Fundo branco corporativo, tabelas rigorosas, fonte Helvetica tamanho 10.
+
+🗄️ SCHEMA SUPABASE:
+
+Tabela profiles (estendendo auth.users):
+- id UUID PRIMARY KEY REFERENCES auth.users(id)
+- barbershop_name TEXT
+- daily_goal DECIMAL(10,2) DEFAULT 0
+- created_at TIMESTAMPTZ DEFAULT now()
+
+Tabela services (catálogo do barbeiro):
+- id UUID PRIMARY KEY DEFAULT gen_random_uuid()
+- barber_id UUID REFERENCES profiles(id)
+- name TEXT NOT NULL
+- price DECIMAL(10,2) NOT NULL
+- duration_minutes INT
+- is_active BOOLEAN DEFAULT true
+- created_at TIMESTAMPTZ DEFAULT now()
+
+Tabela appointments (o livro caixa):
+- id UUID PRIMARY KEY DEFAULT gen_random_uuid()
+- barber_id UUID REFERENCES profiles(id)
+- service_id UUID REFERENCES services(id) -- NULL se avulso
+- service_name TEXT -- denormalizado para histórico
+- price DECIMAL(10,2) NOT NULL
+- started_at TIMESTAMPTZ NOT NULL
+- ended_at TIMESTAMPTZ
+- duration_seconds INT -- calculado via trigger ou RPC
+- note TEXT
+- created_at TIMESTAMPTZ DEFAULT now()
+
+Tabela settings (configurações por barbeiro):
+- barber_id UUID PRIMARY KEY REFERENCES profiles(id)
+- currency TEXT DEFAULT 'BRL'
+- work_start_time TIME DEFAULT '09:00'
+- work_end_time TIME DEFAULT '19:00'
+- work_days INT[] DEFAULT '{1,2,3,4,5,6}' -- 0=domingo
+- theme TEXT DEFAULT 'dark'
+- created_at TIMESTAMPTZ DEFAULT now()
+- updated_at TIMESTAMPTZ DEFAULT now()
+
+RPCs Essenciais:
+- get_daily_summary(barber_id UUID, date DATE) retorna total_revenue, total_appointments, avg_ticket, goal_progress_pct
+- get_performance_range(barber_id UUID, start_date DATE, end_date DATE) retorna métricas agregadas por dia
+- get_idle_time(barber_id UUID, date DATE) retorna minutos ociosos (gap entre ended_at e próximo started_at)
+
+📱 ESTRUTURA DAS ABAS E MECÂNICAS:
+
+1. Início (Dashboard):
+Resumo de faturamento do dia, ticket médio e quantidade de cortes em cards horizontais com scroll snap. Barra de progresso visual da Meta Diária estilo widget da Apple (circular, cor âmbar, valor atual / meta em destaque). Lista "Próximos" se houver agendamentos futuros. Engrenagem (⚙️) no topo abre Bottom Sheet com ajuste da Meta Diária (input numérico com máscara de moeda).
+
+2. Cronômetro (Modo Foco e Espelho):
+Timer com números gigantes centrais (text-7xl font-bold tabular-nums). Cores dinâmicas: 0-15min Verde (#34C759), 15-30min Âmbar (#D4A853), 30min+ Vermelho (#FF3B30). Botão principal grande (80px) play/pause. Botão secundário "Finalizar" aparece apenas quando timer está rodando ou pausado.
+
+Finalização Inteligente: Ao parar, um Bottom Sheet desliza de baixo pedindo o serviço. Seção "Serviço" com lista horizontal de chips (rounded-full) com serviços cadastrados, ou botão "Serviço Avulso" que expande inputs de nome e valor. Input de valor com máscara de moeda (R$). Campo opcional de observação. Botão "Salvar Atendimento" âmbar, full-width, rounded-2xl. Ao salvar: haptic feedback + toast de sucesso + retorno ao Dashboard.
+
+Engrenagem (⚙️): Bottom Sheet com configuração de serviços cadastrados (CRUD rápido: nome + preço).
+
+3. Atendimentos (O Livro Caixa):
+Calendário horizontal no topo (7 dias visíveis, scrollável) com dia atual destacado. Botão calendário expandido abre date picker nativo ou Bottom Sheet com calendário mensal. Lista detalhada em cards (rounded-2xl bg-[#2C2C2E]) mostrando: Hora Início → Hora Fim, Duração em minutos, nome do serviço em bold, valor à direita em âmbar.
+
+CRUD: Tap no card abre Bottom Sheet de edição (mesmo formulário do cronômetro). Swipe para esquerda revela botões Editar (âmbar) e Excluir (vermelho). Exclusão com confirmação via Bottom Sheet (nunca alert nativo). Após mutação: recálculo via Zustand (otimista) + sync Supabase. Se erro: reverte Zustand + toast de erro.
+
+Engrenagem (⚙️): Bottom Sheet com filtros (todos os serviços / por serviço específico).
+
+4. Análise de Desempenho (Sócio Virtual):
+Cards de métricas principais em 2 colunas: Horas Trabalhadas, Horas Ociosas, Ganho por Hora (R$/h), Ticket Médio Geral. Gráfico de barras minimalista estilo Apple (semana atual, barras arredondadas rounded-t-full, sem grid, apenas eixo Y, dia atual em âmbar, outros em gray-600).
+
+Assistente Preditivo: Cards de insights gerados por RPC estatística (NÃO use LLM/IA externa). Exemplos: "Se manter o ritmo, fatura R$ X no sábado" (projeção linear), "Ociosidade de 40% hoje — abaixo da média" (comparação com média dos últimos 7 dias), "Ticket médio subiu 15% esta semana" (variação percentual).
+
+Engrenagem (⚙️): Bottom Sheet com período de análise (7 dias / 30 dias / Este mês / Mês anterior).
+
+5. Relatórios (Exportação Contábil):
+Filtros rápidos em chips horizontais: Hoje, Últimos 7 dias, Este Mês, Mês Anterior, Personalizado (abre Bottom Sheet com date range). Preview do relatório com lista resumida dos atendimentos filtrados. Botão "Gerar PDF" full-width âmbar com ícone de download.
+
+Regra de Ouro do PDF: PROIBIDO print screen. Gere um PDF real e corporativo usando jspdf e jspdf-autotable. Fundo branco #FFFFFF, cabeçalho com nome da barbearia/período/data de emissão, tabela rigorosa com colunas Data | Horário | Serviço | Duração | Valor (R$), linha de total no final, fonte Helvetica tamanho 10, bordas finas cinza #E5E5E5. Nome do arquivo: BarberMetrics_Relatorio_YYYY-MM-DD.pdf.
+
+Engrenagem (⚙️): Bottom Sheet com opções de formato e dados da barbearia para cabeçalho.
+
+6. Ajustes (Configuração Geral):
+Layout estilo tela nativa de Ajustes do iPhone. Seções agrupadas com título em text-xs uppercase text-gray-500 font-semibold tracking-wider:
+- Perfil: Nome da barbearia, Meta diária, Moeda
+- Serviços: Lista editável (navega para tela de CRUD)
+- Horário de Trabalho: Início, fim, dias da semana
+- Aparência: Toggle Dark Mode (placeholder, sempre dark no MVP)
+- Conta: Sair, Excluir conta
+
+Cada linha: rounded-xl bg-[#2C2C2E] com ícone à esquerda, texto, valor/chevron à direita. Separadores: border-b border-white/5 entre itens.
+
+⚙️ SISTEMA DE ESTADO (ZUSTAND):
+
+Interface AppState:
+- user: User | null
+- profile: Profile | null
+- services: Service[]
+- appointments: Appointment[]
+- selectedDate: Date
+- timer: { isRunning: boolean, startTime: Date | null, elapsedSeconds: number }
+- activeTab: 'home' | 'timer' | 'history' | 'analytics' | 'reports' | 'settings'
+- bottomSheet: { isOpen: boolean, type: string | null, data: any }
+
+Ações: startTimer, pauseTimer, stopTimer(serviceData), setSelectedDate(date), fetchAppointments(date), deleteAppointment(id).
+
+Regra de Sync Otimista:
+1. Mutação otimista: atualiza Zustand imediatamente para UI responsiva
+2. Chamada Supabase em background
+3. Se erro: reverte Zustand + exibe toast de erro
+4. Se sucesso: confirma (silent)
+5. Persistência localStorage para offline-first básico
+
+🔒 SEGURANÇA:
+RLS ativado em TODAS as tabelas. Policies: SELECT/INSERT/UPDATE/DELETE usando auth.uid() = barber_id. Zero dados expostos sem autenticação.
+
+📋 MVP CHECKLIST:
+Autenticação Supabase Auth (magic link ou email/senha). Bottom Sheet component reutilizável com Framer Motion. Cronômetro funcional com timer preciso (useInterval). Finalização de atendimento com seleção de serviço ou avulso. Dashboard com meta diária e resumo. Lista de atendimentos com filtro por data. Edição e exclusão com swipe. Gráfico de faturamento semanal. PDF de relatório com jspdf. PWA instalável (manifest + service worker). Offline-first básico (Zustand persist + sync quando online).
+
+🚫 FORA DO MVP (Roadmap Futuro):
+Agendamentos futuros, múltiplos barbeiros (multi-tenant real com barbershop_id), notificações push, integração WhatsApp, assinatura/pagamentos (Stripe), exportação CSV/Excel, tema claro.
+
+Foque em construir o layout iOS React perfeito, o estado do Zustand com persistência e sync otimista, e as chamadas diretas ao Supabase. Confirme se absorveu a estética Apple UI.
