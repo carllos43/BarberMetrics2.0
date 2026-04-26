@@ -1,11 +1,11 @@
 import { useListServices, useCreateService, useUpdateService, useDeleteService } from "@/lib/data";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
-import { Plus, ChevronLeft, Trash, Edit } from "lucide-react";
+import { Plus, ChevronLeft, Trash } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { logAndExtract } from "@/lib/errors";
 
 export function ServiceCatalogSheet({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
   const { data: services, isLoading } = useListServices();
@@ -71,17 +71,17 @@ export function ServiceCatalogSheet({ open, onOpenChange }: { open: boolean, onO
 }
 
 function ServiceRow({ service, onEdit }: { service: any, onEdit: () => void }) {
-  const queryClient = useQueryClient();
   const { mutateAsync: deleteService } = useDeleteService();
   const [showActions, setShowActions] = useState(false);
 
-  const handleDelete = async () => {
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
       navigator.vibrate?.([10, 30, 10]);
       await deleteService({ id: service.id });
       toast.success("Serviço excluído");
-    } catch (e) {
-      toast.error("Erro ao excluir");
+    } catch (err) {
+      toast.error(logAndExtract(err, "Erro ao excluir serviço"));
     }
   };
 
@@ -119,13 +119,13 @@ function ServiceRow({ service, onEdit }: { service: any, onEdit: () => void }) {
 function ServiceFormSheet({ open, onOpenChange, service }: { open: boolean, onOpenChange: (open: boolean) => void, service?: any }) {
   const { mutateAsync: createService } = useCreateService();
   const { mutateAsync: updateService } = useUpdateService();
-  const queryClient = useQueryClient();
 
   const [name, setName] = useState("");
   const [priceStr, setPriceStr] = useState("");
 
-  // Update local state when service changes
-  useState(() => {
+  // Re-sync form when opening or switching service
+  useEffect(() => {
+    if (!open) return;
     if (service) {
       setName(service.name);
       setPriceStr((service.price * 100).toString());
@@ -133,24 +133,30 @@ function ServiceFormSheet({ open, onOpenChange, service }: { open: boolean, onOp
       setName("");
       setPriceStr("");
     }
-  });
+  }, [open, service]);
 
   const handleSave = async () => {
-    if (!name || !priceStr) return;
-    
-    const price = parseFloat(priceStr.replace(/\D/g, "")) / 100;
+    if (!name.trim()) {
+      toast.error("Informe o nome do serviço");
+      return;
+    }
+    const price = parseFloat(priceStr.replace(/\D/g, "") || "0") / 100;
+    if (!price) {
+      toast.error("Informe um valor válido");
+      return;
+    }
 
     try {
       if (service) {
-        await updateService({ id: service.id, data: { name, price } });
+        await updateService({ id: service.id, data: { name: name.trim(), price } });
         toast.success("Serviço atualizado");
       } else {
-        await createService({ data: { name, price } });
+        await createService({ data: { name: name.trim(), price } });
         toast.success("Serviço criado");
       }
       onOpenChange(false);
-    } catch (e) {
-      toast.error("Erro ao salvar");
+    } catch (err) {
+      toast.error(logAndExtract(err, "Erro ao salvar serviço"));
     }
   };
 
@@ -191,12 +197,20 @@ function ServiceFormSheet({ open, onOpenChange, service }: { open: boolean, onOp
           </div>
         </div>
 
-        <button
-          onClick={handleSave}
-          className="w-full py-4 rounded-2xl bg-amber-500 text-black font-bold text-lg"
-        >
-          Salvar
-        </button>
+        <div className="space-y-3">
+          <button
+            onClick={handleSave}
+            className="w-full py-4 rounded-2xl bg-amber-500 text-black font-bold text-lg"
+          >
+            Salvar
+          </button>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="w-full py-3 rounded-2xl bg-[#3a3a3c] text-white font-medium"
+          >
+            Cancelar
+          </button>
+        </div>
       </div>
     </Modal>
   );

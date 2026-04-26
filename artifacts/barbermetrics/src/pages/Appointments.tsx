@@ -8,6 +8,7 @@ import { Modal } from "@/components/ui/modal";
 import { Calendar as CalendarIcon, Clock, Trash, Edit, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { logAndExtract } from "@/lib/errors";
 
 export function Appointments() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -156,7 +157,7 @@ function AppointmentCard({ appointment, index }: { appointment: any, index: numb
       toast.success("Atendimento excluído");
       setDeleteConfirmOpen(false);
     } catch (e) {
-      toast.error("Erro ao excluir");
+      toast.error(logAndExtract(e, "Erro ao excluir atendimento"));
     }
   };
 
@@ -273,7 +274,7 @@ function EditAppointmentSheet({ appointment, open, onOpenChange }: { appointment
       toast.success("Atendimento atualizado");
       onOpenChange(false);
     } catch (err) {
-      toast.error("Erro ao atualizar");
+      toast.error(logAndExtract(err, "Erro ao atualizar atendimento"));
     }
   };
 
@@ -363,12 +364,20 @@ function EditAppointmentSheet({ appointment, open, onOpenChange }: { appointment
           </div>
         </div>
 
-        <button
-          onClick={handleSave}
-          className="w-full py-4 rounded-2xl bg-amber-500 text-black font-bold text-lg"
-        >
-          Salvar Alterações
-        </button>
+        <div className="space-y-3">
+          <button
+            onClick={handleSave}
+            className="w-full py-4 rounded-2xl bg-amber-500 text-black font-bold text-lg"
+          >
+            Salvar Alterações
+          </button>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="w-full py-3 rounded-2xl bg-[#2C2C2E] text-white font-medium"
+          >
+            Cancelar
+          </button>
+        </div>
       </div>
     </Modal>
   );

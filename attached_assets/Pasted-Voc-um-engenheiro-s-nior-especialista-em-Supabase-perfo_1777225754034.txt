@@ -1,0 +1,151 @@
+Você é um engenheiro sênior especialista em Supabase, performance e UX moderno.
+
+Sua tarefa é corrigir, otimizar e melhorar completamente este sistema para uso real em produção.
+
+⸻
+
+🎯 OBJETIVOS
+
+1. Corrigir erro “Erro ao salvar”
+2. Garantir salvamento correto no Supabase
+3. Implementar lançamento rápido de atendimentos
+4. Melhorar performance geral
+5. Corrigir UX adicionando controle total de abertura e fechamento de telas/modais
+
+⸻
+
+🔧 1. CORREÇÃO DE SALVAMENTO (CRÍTICO)
+
+* Verificar autenticação (auth.uid())
+* Garantir que todos os inserts incluem:
+    user_id = auth.uid()
+
+⸻
+
+RLS
+
+* Ativar Row Level Security em todas as tabelas
+
+Criar policies:
+
+INSERT → auth.uid() = user_id
+SELECT → auth.uid() = user_id
+UPDATE → auth.uid() = user_id
+DELETE → auth.uid() = user_id
+
+⸻
+
+ERROS
+
+* Remover erro genérico “Erro ao salvar”
+* Mostrar erro real do Supabase
+* Logar erro no console
+
+⸻
+
+⚡ 2. LANÇAMENTO RÁPIDO
+
+Criar seção com botões rápidos:
+
+* Corte
+* Barba
+* Corte + Barba
+
+⸻
+
+FUNCIONAMENTO
+
+Ao clicar:
+
+* Criar atendimento automaticamente
+* Preencher:
+    * serviço
+    * valor
+    * user_id
+    * data atual
+* Salvar direto no Supabase
+* Sem abrir formulário
+
+⸻
+
+EXTRA
+
+* Campo de valor manual rápido
+* Botão “lançar rápido”
+
+⸻
+
+🚀 3. PERFORMANCE (CRÍTICO)
+
+* Lazy loading
+* Cache de dados
+* Reduzir requisições ao Supabase
+* Pré-carregamento de páginas
+* Atualização imediata (optimistic UI)
+* Remover código desnecessário
+
+⸻
+
+🎨 4. PADRÃO DE MODAIS (OBRIGATÓRIO)
+
+* Usar apenas MODAL CENTRAL (popup)
+* NÃO usar bottom sheet
+
+⸻
+
+❗ 5. CONTROLE DE FECHAMENTO (CRÍTICO DE UX)
+
+PROBLEMA
+
+O sistema abre telas/modais mas não permite fechar facilmente.
+
+⸻
+
+SOLUÇÃO OBRIGATÓRIA
+
+TODOS os modais, telas e pop-ups devem ter opção clara de fechar.
+
+⸻
+
+IMPLEMENTAR EM TODOS OS COMPONENTES
+
+Adicionar:
+
+* Botão “X” no canto superior direito
+* Botão “Cancelar” quando fizer sentido
+* Fechar ao clicar fora (overlay)
+* Fechar ao pressionar ESC
+
+⸻
+
+REGRAS
+
+* Nenhuma tela pode prender o usuário
+* Tudo que abre deve poder fechar facilmente
+* Garantir funcionamento em mobile e desktop
+
+⸻
+
+APLICAR GLOBALMENTE
+
+* Salvar atendimento
+* Novo serviço
+* Configurações
+* Qualquer popup
+* Qualquer tela aberta dinamicamente
+
+⸻
+
+🚀 RESULTADO FINAL
+
+* Sistema salvando corretamente
+* Dados persistindo no Supabase
+* Lançamento rápido funcionando
+* Sistema rápido e fluido
+* UX profissional
+* Nenhum usuário preso em tela
+* Tudo abre e fecha corretamente
+
+⸻
+
+Execute todas as melhorias automaticamente.

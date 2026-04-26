@@ -4,6 +4,7 @@ import { ptBR } from "date-fns/locale";
 import { formatCurrency, formatTime } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { BarChart, Bar, ResponsiveContainer, Cell } from "recharts";
+import { QuickLaunch } from "@/components/QuickLaunch";
 
 export function Home() {
   const today = format(new Date(), "yyyy-MM-dd");
@@ -45,6 +46,8 @@ export function Home() {
           {formatCurrency(revenue)}
         </h1>
       </motion.div>
+
+      <QuickLaunch />
 
       {/* Activity Ring Equivalent */}
       <motion.div 

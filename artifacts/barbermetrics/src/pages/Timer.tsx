@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useListServices, useCreateAppointment } from "@/lib/data";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { logAndExtract } from "@/lib/errors";
 
 export function Timer() {
   const { 
@@ -168,7 +169,7 @@ function SaveAppointmentSheet({ open, onOpenChange, durationSeconds, startedAt }
       onOpenChange(false);
       setCurrentTab("home");
     } catch (err) {
-      toast.error("Erro ao salvar");
+      toast.error(logAndExtract(err, "Erro ao salvar atendimento"));
     }
   };
 
@@ -257,12 +258,20 @@ function SaveAppointmentSheet({ open, onOpenChange, durationSeconds, startedAt }
           </div>
         </div>
 
-        <button
-          onClick={handleSave}
-          className="w-full py-4 rounded-2xl bg-amber-500 text-black font-bold text-lg"
-        >
-          Salvar atendimento
-        </button>
+        <div className="space-y-3">
+          <button
+            onClick={handleSave}
+            className="w-full py-4 rounded-2xl bg-amber-500 text-black font-bold text-lg"
+          >
+            Salvar atendimento
+          </button>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="w-full py-3 rounded-2xl bg-[#2C2C2E] text-white font-medium"
+          >
+            Cancelar
+          </button>
+        </div>
       </div>
     </Modal>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ModalProps {
@@ -8,9 +9,10 @@ interface ModalProps {
   children: ReactNode;
   className?: string;
   title?: string;
+  hideClose?: boolean;
 }
 
-export function Modal({ open, onOpenChange, children, className, title }: ModalProps) {
+export function Modal({ open, onOpenChange, children, className, title, hideClose }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -61,6 +63,16 @@ export function Modal({ open, onOpenChange, children, className, title }: ModalP
         style={{ WebkitOverflowScrolling: "touch" }}
         tabIndex={-1}
       >
+        {!hideClose && (
+          <button
+            type="button"
+            aria-label="Fechar"
+            onClick={() => onOpenChange(false)}
+            className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-[#2C2C2E] hover:bg-[#3a3a3c] active:scale-95 transition flex items-center justify-center text-gray-300"
+          >
+            <X size={18} strokeWidth={2.5} />
+          </button>
+        )}
         {children}
       </div>
     </div>

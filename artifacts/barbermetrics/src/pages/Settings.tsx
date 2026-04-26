@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { ServiceCatalogSheet } from "./ServiceCatalog";
 import { useAuth } from "@/lib/auth";
+import { logAndExtract } from "@/lib/errors";
 
 export function SettingsSheet({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
   const { data: settings } = useGetSettings();
@@ -36,7 +37,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean, onOpenCha
       toast.success("Ajustes salvos");
       onOpenChange(false);
     } catch (e) {
-      toast.error("Erro ao salvar");
+      toast.error(logAndExtract(e, "Erro ao salvar ajustes"));
     }
   };
 
@@ -130,12 +131,18 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean, onOpenCha
             </div>
           </div>
 
-          <div className="sticky bottom-0 pt-4 pb-8 bg-[#1C1C1E] border-t border-white/5">
+          <div className="sticky bottom-0 pt-4 pb-8 bg-[#1C1C1E] border-t border-white/5 space-y-3">
             <button
               onClick={handleSave}
               className="w-full py-4 rounded-full bg-amber-500 text-black font-bold text-lg"
             >
               Salvar Ajustes
+            </button>
+            <button
+              onClick={() => onOpenChange(false)}
+              className="w-full py-3 rounded-full bg-[#2C2C2E] text-white font-medium"
+            >
+              Cancelar
             </button>
           </div>
         </div>

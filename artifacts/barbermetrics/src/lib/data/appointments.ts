@@ -73,7 +73,31 @@ export function useCreateAppointment() {
       if (error) throw error;
       return mapAppointment(row);
     },
-    onSuccess: () => invalidateAll(qc),
+    // Optimistic UI: immediately add the new appointment to "today" list + bump summaries
+    onMutate: async ({ data }) => {
+      await qc.cancelQueries({ queryKey: [APPT_KEY] });
+      const date = data.startedAt.slice(0, 10);
+      const optimisticId = `optimistic-${Date.now()}`;
+      const optimistic: Appointment = {
+        id: optimisticId,
+        serviceId: data.serviceId ?? null,
+        serviceName: data.serviceName,
+        price: data.price,
+        startedAt: data.startedAt,
+        endedAt: data.endedAt ?? null,
+        durationSeconds: data.durationSeconds ?? null,
+        note: data.note ?? null,
+        createdAt: new Date().toISOString(),
+      };
+      const key = appointmentsKey({ date });
+      const prev = qc.getQueryData<Appointment[]>(key);
+      qc.setQueryData<Appointment[]>(key, (old) => [...(old ?? []), optimistic]);
+      return { prev, key, optimisticId };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.key) qc.setQueryData(ctx.key, ctx.prev);
+    },
+    onSettled: () => invalidateAll(qc),
   });
 }
 
